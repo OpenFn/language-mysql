@@ -21,9 +21,9 @@ Documentation
 ## `sql(query)`
 Execute an sql query.
 
-#### sample usage
+#### sample usage with string interpolation
 ```js
-sql(
+sqlString(
   function(state) {
     return (
       `INSERT INTO untitled_table (name, the_geom) VALUES ('`
@@ -35,6 +35,11 @@ sql(
   }
 )
 ```
+
+<!-- #### sample usage with JSON query body
+```js
+sqlJSON(operation, columns, values)
+``` -->
 
 
 Development

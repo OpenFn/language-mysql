@@ -24,7 +24,6 @@ export function execute(...operations) {
 
   return state => {
     return commonExecute(
-      createClient,
       connect,
       ...operations,
       disconnect,
@@ -34,32 +33,30 @@ export function execute(...operations) {
 
 }
 
-function createClient(state) {
+function connect(state) {
+
   const { host, port, database, password, user } = state.configuration;
 
-  // setup client config
-  var config = { host, port, database, user, password, ssl: true };
+  var connection = mysql.createConnection({
+    host     : host,
+    user     : user,
+    password : password,
+    database : database,
+    port     : port
+  });
 
-  // instantiate a new client
-  var client = new pg.Client(config);
+  connection.connect();
+  return { ...state, connection: connection }
 
-  return { ...state, client: client }
-}
-
-function connect(state) {
-  let { client } = state;
-  client.connect()
-  return { ...state, client: client }
 }
 
 function disconnect(state) {
-  let { client } = state;
-  client.end()
+  state.connection.end()
   return state
-}
+};
 
 function cleanupState(state) {
-  delete state.client;
+  delete state.connection;
   return state;
 }
 
@@ -73,26 +70,32 @@ function cleanupState(state) {
  * @param {object} sqlQuery - Payload data for the message
  * @returns {Operation}
  */
-export function sql(sqlQuery) {
+export function sqlString(queryString) {
 
   return state => {
 
-    let { client } = state;
+    let { connection } = state;
 
     try {
 
-      const body = sqlQuery(state);
-      console.log("Executing SQL statement: " + body)
+      const body = sqlQuery(queryString);
+      console.log("Executing MySQL statement: " + body)
+
+      connection.query('SELECT 1 + 1 AS solution', function (error, results, fields) {
+        if (error) throw error;
+        console.log('The solution is: ', results[0].solution);
+      });
 
       return new Promise((resolve, reject) => {
         // execute a query on our database
-        client.query(body, function(err, result) {
+        connection.query(body, function(err, results, fields) {
           if (err) {
             reject(err);
             // Disconnect if there's an error.
-            client.end();
+            connection.end();
           } else {
             console.log(result)
+            console.log(fields)
             resolve(result)
           }
         })
@@ -105,7 +108,7 @@ export function sql(sqlQuery) {
     } catch (e) {
 
       console.log(e)
-      client.end()
+      connection.end()
 
     }
 
@@ -113,6 +116,6 @@ export function sql(sqlQuery) {
 }
 
 export {
-  field, fields, sourceValue, fields, alterState, arrayToString, each, combine,
+  field, fields, sourceValue, alterState, arrayToString, each, combine,
   merge, dataPath, dataValue, lastReferenceValue
 } from 'language-common';
