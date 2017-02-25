@@ -1,6 +1,7 @@
 import { execute as commonExecute, expandReferences } from 'language-common';
 import { resolve as resolveUrl } from 'url';
 import mysql from 'mysql';
+var jsonSql = require('json-sql')();
 
 /** @module Adaptor */
 
@@ -46,6 +47,7 @@ function connect(state) {
   });
 
   connection.connect();
+  console.log(`Successfully connected to ${database}...`)
   return { ...state, connection: connection }
 
 }
@@ -70,49 +72,88 @@ function cleanupState(state) {
  * @param {object} sqlQuery - Payload data for the message
  * @returns {Operation}
  */
-export function sqlString(queryString) {
+export function insert(table, fields) {
 
   return state => {
 
     let { connection } = state;
 
-    try {
+    const valuesObj = expandReferences(fields)(state);
+    console.log(valuesObj)
 
-      const body = queryString(state);
+    var sql = jsonSql.build({
+        type: 'insert',
+        table: table,
+        values: valuesObj
+    });
 
-      console.log("Executing MySQL statement: " + body)
+    console.log("Executing MySQL statement: " + sql.query)
 
-      connection.query(body, function (error, results, fields) {
-        if (error) throw error;
-        console.log('The solution is: ', results[0].solution);
-      });
-
-      return new Promise((resolve, reject) => {
-        // execute a query on our database
-        connection.query(body, function(err, results, fields) {
-          if (err) {
-            reject(err);
-            // Disconnect if there's an error.
-            connection.end();
-          } else {
-            console.log(results)
-            console.log(fields)
-            resolve(results)
-          }
-        })
+    return new Promise((resolve, reject) => {
+      // execute a query on our database
+      connection.query(sql.query, function(err, results, fields) {
+        if (err) {
+          reject(err);
+          // Disconnect if there's an error.
+          console.log("That's an error. Disconnecting from database.")
+          connection.end();
+        } else {
+          console.log("Success...")
+          console.log(results)
+          console.log(fields)
+          resolve(results)
+        }
       })
-      .then((data) => {
-        const nextState = { ...state, response: { body: data } };
-        return nextState;
+    })
+    .then((data) => {
+      const nextState = { ...state, response: { body: data } };
+      return nextState;
+    })
+
+  }
+}
+
+
+/**
+ * Execute an SQL statement
+ * @example
+ * execute(
+ *   sql(sqlQuery)
+ * )(state)
+ * @constructor
+ * @param {object} sqlQuery - Payload data for the message
+ * @returns {Operation}
+ */
+export function sqlString(fun) {
+
+  return state => {
+
+    let { connection } = state;
+
+    const body = fun(state);
+
+    console.log("Executing MySQL statement: " + body)
+
+    return new Promise((resolve, reject) => {
+      // execute a query on our database
+      connection.query(body, function(err, results, fields) {
+        if (err) {
+          reject(err);
+          // Disconnect if there's an error.
+          console.log("That's an error. Disconnecting from database.")
+          connection.end();
+        } else {
+          console.log("Success...")
+          console.log(results)
+          console.log(fields)
+          resolve(results)
+        }
       })
-
-    } catch (e) {
-
-      console.log(e)
-
-    }
-
-    connection.end()
+    })
+    .then((data) => {
+      const nextState = { ...state, response: { body: data } };
+      return nextState;
+    })
 
   }
 }
