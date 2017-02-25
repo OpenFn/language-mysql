@@ -23,13 +23,12 @@ Execute an sql query.
 
 #### sample usage with string interpolation
 ```js
-sqlString(function(state) {
+sqlString(state => {
     return (
       `INSERT INTO untitled_table (name, the_geom) VALUES ('`
-      + dataValue("form.first_name")(state)
-      + `', ST_SetSRID(ST_Point(`
-        + dataValue("lat")(state) + `, `
-        + dataValue("long")(state) + `),4326))`
+        + state.data.version
+        + `', `
+        + dataValue("form.Choix_tache")(state) + `)`
     )
 });
 ```
