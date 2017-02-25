@@ -23,8 +23,7 @@ Execute an sql query.
 
 #### sample usage with string interpolation
 ```js
-sqlString(
-  function(state) {
+sqlString(function(state) {
     return (
       `INSERT INTO untitled_table (name, the_geom) VALUES ('`
       + dataValue("form.first_name")(state)
@@ -32,14 +31,15 @@ sqlString(
         + dataValue("lat")(state) + `, `
         + dataValue("long")(state) + `),4326))`
     )
-  }
-)
+});
 ```
 
-<!-- #### sample usage with JSON query body
+#### sample usage with `insert`
 ```js
-sqlJSON(operation, columns, values)
-``` -->
+insert("some_table", fields(
+  field("name", dataValue("form.patient_name"))
+));
+```
 
 
 Development
