@@ -10,11 +10,10 @@ Documentation
 ```json
 {
   "host": "some-host-url.compute-1.amazonaws.com",
-  "port": "5432",
+  "port": "3306",
   "database": "wouldntyouliketoknow",
   "user": "me",
-  "password": "noway",
-  "ssl": true
+  "password": "noway"
 }
 ```
 
