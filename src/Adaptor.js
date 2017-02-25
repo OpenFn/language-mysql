@@ -78,10 +78,11 @@ export function sqlString(queryString) {
 
     try {
 
-      const body = sqlQuery(queryString);
+      const body = queryString(state);
+
       console.log("Executing MySQL statement: " + body)
 
-      connection.query('SELECT 1 + 1 AS solution', function (error, results, fields) {
+      connection.query(body, function (error, results, fields) {
         if (error) throw error;
         console.log('The solution is: ', results[0].solution);
       });
@@ -94,9 +95,9 @@ export function sqlString(queryString) {
             // Disconnect if there's an error.
             connection.end();
           } else {
-            console.log(result)
+            console.log(results)
             console.log(fields)
-            resolve(result)
+            resolve(results)
           }
         })
       })
@@ -108,9 +109,10 @@ export function sqlString(queryString) {
     } catch (e) {
 
       console.log(e)
-      connection.end()
 
     }
+
+    connection.end()
 
   }
 }
