@@ -18,7 +18,7 @@ Documentation
 }
 ```
 
-## `sql(query)`
+## `sqlString(query)`
 Execute an sql query.
 
 #### sample usage with string interpolation

@@ -47,7 +47,7 @@ function connect(state) {
   });
 
   connection.connect();
-  console.log(`Successfully connected to ${database}...`)
+  console.log(`Preparing to query "` + database + `"...`);
   return { ...state, connection: connection }
 
 }
@@ -79,7 +79,6 @@ export function insert(table, fields) {
     let { connection } = state;
 
     const valuesObj = expandReferences(fields)(state);
-    console.log(valuesObj)
 
     var sql = jsonSql.build({
         type: 'insert',
@@ -87,7 +86,7 @@ export function insert(table, fields) {
         values: valuesObj
     });
 
-    console.log("Executing MySQL statement: " + sql.query)
+    console.log("Executing MySQL query: " + sql.query)
 
     return new Promise((resolve, reject) => {
       // execute a query on our database
