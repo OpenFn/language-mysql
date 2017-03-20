@@ -1,7 +1,11 @@
 import { execute as commonExecute, expandReferences } from 'language-common';
 import { resolve as resolveUrl } from 'url';
 import mysql from 'mysql';
-var jsonSql = require('json-sql')();
+var jsonSql = require('json-sql')({
+  // "wrappedIdentifiers": true,
+  "separatedValues": false,
+  "dialect": "mysql"
+});
 
 /** @module Adaptor */
 
@@ -79,6 +83,8 @@ export function insert(table, fields) {
     let { connection } = state;
 
     const valuesObj = expandReferences(fields)(state);
+
+    console.log(table)
 
     var sql = jsonSql.build({
         type: 'insert',
