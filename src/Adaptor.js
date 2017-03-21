@@ -66,10 +66,11 @@ function cleanupState(state) {
  * Execute an SQL statement
  * @example
  * execute(
- *   sql(sqlQuery)
+ *   insert(table, fields)
  * )(state)
  * @constructor
- * @param {object} sqlQuery - Payload data for the message
+ * @param {string} table - the table
+ * @param {object} fields - a fields object
  * @returns {Operation}
  */
 export function insert(table, fields) {
@@ -196,129 +197,6 @@ export function upsert(table, fields) {
 
   }
 }
-
-/**
- * Execute an SQL insert statement
- * @example
- * execute(
- *   insert(table, fields)
- * )(state)
- * @constructor
- * @param {object} sqlQuery - Payload data for the message
- * @returns {Operation}
- */
-export function insert(table, fields) {
-
-  return state => {
-
-    let { connection } = state;
-
-    const valuesObj = expandReferences(fields)(state);
-
-    const squelMysql = squel.useFlavour('mysql');
-
-    var sqlParams = squelMysql.insert({
-                                autoQuoteFieldNames: true
-                              })
-                              .into(table)
-                              .setFields(valuesObj)
-                              .toParam()
-
-    var sql = sqlParams.text;
-    var inserts = sqlParams.values;
-    sqlString = mysql.format(sql, inserts);
-
-    console.log("Executing MySQL query: " + sqlString)
-
-    return new Promise((resolve, reject) => {
-      // execute a query on our database
-
-
-      // TODO: figure out how to escape the string.
-
-      connection.query(sqlString, function(err, results, fields) {
-        if (err) {
-          reject(err);
-          // Disconnect if there's an error.
-          console.log("That's an error. Disconnecting from database.")
-          connection.end();
-        } else {
-          console.log("Success...")
-          console.log(results)
-          console.log(fields)
-          resolve(results)
-        }
-      })
-    })
-    .then((data) => {
-      const nextState = { ...state, response: { body: data } };
-      return nextState;
-    })
-
-  }
-}
-
-/**
- * Execute an SQL statement
- * @example
- * execute(
- *   sql(sqlQuery)
- * )(state)
- * @constructor
- * @param {object} sqlQuery - Payload data for the message
- * @returns {Operation}
- */
-export function insert(table, fields) {
-
-  return state => {
-
-    let { connection } = state;
-
-    const valuesObj = expandReferences(fields)(state);
-
-    const squelMysql = squel.useFlavour('mysql');
-
-    var sqlParams = squelMysql.insert({
-                                autoQuoteFieldNames: true
-                              })
-                              .into(table)
-                              .setFields(valuesObj)
-                              .toParam()
-
-    var sql = sqlParams.text;
-    var inserts = sqlParams.values;
-    sqlString = mysql.format(sql, inserts);
-
-    console.log("Executing MySQL query: " + sqlString)
-
-    return new Promise((resolve, reject) => {
-      // execute a query on our database
-
-
-      // TODO: figure out how to escape the string.
-
-      connection.query(sqlString, function(err, results, fields) {
-        if (err) {
-          reject(err);
-          // Disconnect if there's an error.
-          console.log("That's an error. Disconnecting from database.")
-          connection.end();
-        } else {
-          console.log("Success...")
-          console.log(results)
-          console.log(fields)
-          resolve(results)
-        }
-      })
-    })
-    .then((data) => {
-      const nextState = { ...state, response: { body: data } };
-      return nextState;
-    })
-
-  }
-}
-
 
 /**
  * Execute an SQL statement
