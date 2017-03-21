@@ -1,11 +1,7 @@
 import { execute as commonExecute, expandReferences } from 'language-common';
 import { resolve as resolveUrl } from 'url';
 import mysql from 'mysql';
-var jsonSql = require('json-sql')({
-  // "wrappedIdentifiers": true,
-  "separatedValues": false,
-  "dialect": "mysql"
-});
+import squel from 'squel';
 
 /** @module Adaptor */
 
@@ -84,19 +80,28 @@ export function insert(table, fields) {
 
     const valuesObj = expandReferences(fields)(state);
 
-    console.log(table)
+    const squelMysql = squel.useFlavour('mysql');
 
-    var sql = jsonSql.build({
-        type: 'insert',
-        table: table,
-        values: valuesObj
-    });
+    var sqlParams = squelMysql.insert({
+                                autoQuoteFieldNames: true
+                              })
+                              .into(table)
+                              .setFields(valuesObj)
+                              .toParam()
 
-    console.log("Executing MySQL query: " + sql.query)
+    var sql = sqlParams.text;
+    var inserts = sqlParams.values;
+    sqlString = mysql.format(sql, inserts);
+
+    console.log("Executing MySQL query: " + sqlString)
 
     return new Promise((resolve, reject) => {
       // execute a query on our database
-      connection.query(sql.query, function(err, results, fields) {
+
+
+      // TODO: figure out how to escape the string.
+
+      connection.query(sqlString, function(err, results, fields) {
         if (err) {
           reject(err);
           // Disconnect if there's an error.
