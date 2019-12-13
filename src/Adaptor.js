@@ -20,8 +20,8 @@ import squel from 'squel';
 export function execute(...operations) {
   const initialState = {
     references: [],
-    data: null
-  }
+    data: null,
+  };
 
   return state => {
     return commonExecute(
@@ -29,33 +29,30 @@ export function execute(...operations) {
       ...operations,
       disconnect,
       cleanupState
-    )({ ...initialState, ...state })
+    )({ ...initialState, ...state });
   };
-
 }
 
 function connect(state) {
-
   const { host, port, database, password, user } = state.configuration;
 
   var connection = mysql.createConnection({
-    host     : host,
-    user     : user,
-    password : password,
-    database : database,
-    port     : port
+    host: host,
+    user: user,
+    password: password,
+    database: database,
+    port: port,
   });
 
   connection.connect();
   console.log(`Preparing to query "` + database + `"...`);
-  return { ...state, connection: connection }
-
+  return { ...state, connection: connection };
 }
 
 function disconnect(state) {
-  state.connection.end()
-  return state
-};
+  state.connection.end();
+  return state;
+}
 
 function cleanupState(state) {
   delete state.connection;
@@ -74,31 +71,29 @@ function cleanupState(state) {
  * @returns {Operation}
  */
 export function insert(table, fields) {
-
   return state => {
-
     let { connection } = state;
 
     const valuesObj = expandReferences(fields)(state);
 
     const squelMysql = squel.useFlavour('mysql');
 
-    var sqlParams = squelMysql.insert({
-                                autoQuoteFieldNames: true
-                              })
-                              .into(table)
-                              .setFields(valuesObj)
-                              .toParam()
+    var sqlParams = squelMysql
+      .insert({
+        autoQuoteFieldNames: true,
+      })
+      .into(table)
+      .setFields(valuesObj)
+      .toParam();
 
     var sql = sqlParams.text;
     var inserts = sqlParams.values;
     sqlString = mysql.format(sql, inserts);
 
-    console.log("Executing MySQL query: " + sqlString)
+    console.log('Executing MySQL query: ' + sqlString);
 
     return new Promise((resolve, reject) => {
       // execute a query on our database
-
 
       // TODO: figure out how to escape the string.
 
@@ -106,22 +101,20 @@ export function insert(table, fields) {
         if (err) {
           reject(err);
           // Disconnect if there's an error.
-          console.log("That's an error. Disconnecting from database.")
+          console.log("That's an error. Disconnecting from database.");
           connection.end();
         } else {
-          console.log("Success...")
-          console.log(results)
-          console.log(fields)
-          resolve(results)
+          console.log('Success...');
+          console.log(results);
+          console.log(fields);
+          resolve(results);
         }
-      })
-    })
-    .then((data) => {
+      });
+    }).then(data => {
       const nextState = { ...state, response: { body: data } };
       return nextState;
-    })
-
-  }
+    });
+  };
 }
 
 /**
@@ -135,44 +128,44 @@ export function insert(table, fields) {
  * @returns {Operation}
  */
 export function upsert(table, fields) {
-
   return state => {
-
     let { connection } = state;
 
     const valuesObj = expandReferences(fields)(state);
 
     const squelMysql = squel.useFlavour('mysql');
 
-    var insertParams = squelMysql.insert({
-                                autoQuoteFieldNames: true
-                              })
-                              .into(table)
-                              .setFields(valuesObj)
-                              .toParam()
+    var insertParams = squelMysql
+      .insert({
+        autoQuoteFieldNames: true,
+      })
+      .into(table)
+      .setFields(valuesObj)
+      .toParam();
 
     var sql = insertParams.text;
     var inserts = insertParams.values;
     const insertString = mysql.format(sql, inserts);
 
-    var updateParams = squelMysql.update({
-                                autoQuoteFieldNames: true
-                              })
-                              .table('')
-                              .setFields(valuesObj)
-                              .toParam()
+    var updateParams = squelMysql
+      .update({
+        autoQuoteFieldNames: true,
+      })
+      .table('')
+      .setFields(valuesObj)
+      .toParam();
 
     var sql = updateParams.text;
     var inserts = updateParams.values;
     const updateString = mysql.format(sql, inserts);
 
-    const upsertString = insertString + ` ON DUPLICATE KEY UPDATE ` + updateString.slice(10);
+    const upsertString =
+      insertString + ` ON DUPLICATE KEY UPDATE ` + updateString.slice(10);
 
-    console.log("Executing MySQL query: " + upsertString)
+    console.log('Executing MySQL query: ' + upsertString);
 
     return new Promise((resolve, reject) => {
       // execute a query on our database
-
 
       // TODO: figure out how to escape the string.
 
@@ -180,22 +173,20 @@ export function upsert(table, fields) {
         if (err) {
           reject(err);
           // Disconnect if there's an error.
-          console.log("That's an error. Disconnecting from database.")
+          console.log("That's an error. Disconnecting from database.");
           connection.end();
         } else {
-          console.log("Success...")
-          console.log(results)
-          console.log(fields)
-          resolve(results)
+          console.log('Success...');
+          console.log(results);
+          console.log(fields);
+          resolve(results);
         }
-      })
-    })
-    .then((data) => {
+      });
+    }).then(data => {
       const nextState = { ...state, response: { body: data } };
       return nextState;
-    })
-
-  }
+    });
+  };
 }
 
 /**
@@ -209,14 +200,12 @@ export function upsert(table, fields) {
  * @returns {Operation}
  */
 export function sqlString(fun) {
-
   return state => {
-
     let { connection } = state;
 
     const body = fun(state);
 
-    console.log("Executing MySQL statement: " + body)
+    console.log('Executing MySQL statement: ' + body);
 
     return new Promise((resolve, reject) => {
       // execute a query on our database
@@ -224,25 +213,31 @@ export function sqlString(fun) {
         if (err) {
           reject(err);
           // Disconnect if there's an error.
-          console.log("That's an error. Disconnecting from database.")
+          console.log("That's an error. Disconnecting from database.");
           connection.end();
         } else {
-          console.log("Success...")
-          console.log(results)
-          console.log(fields)
-          resolve(results)
+          console.log('Success...');
+          resolve(JSON.parse(JSON.stringify(results)));
         }
-      })
-    })
-    .then((data) => {
+      });
+    }).then(data => {
+      console.log(data);
       const nextState = { ...state, response: { body: data } };
       return nextState;
-    })
-
-  }
+    });
+  };
 }
 
 export {
-  field, fields, sourceValue, alterState, arrayToString, each, combine,
-  merge, dataPath, dataValue, lastReferenceValue
+  field,
+  fields,
+  sourceValue,
+  alterState,
+  arrayToString,
+  each,
+  combine,
+  merge,
+  dataPath,
+  dataValue,
+  lastReferenceValue,
 } from 'language-common';
