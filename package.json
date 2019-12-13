@@ -16,7 +16,7 @@
   "dependencies": {
     "json-sql": "^0.3.10",
     "language-common": "github:openfn/language-common",
-    "mysql": "^2.13.0",
+    "mysql": "^2.17.1",
     "squel": "^5.13.0",
     "string-escape": "^0.3.0"
   },
