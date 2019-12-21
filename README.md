@@ -1,12 +1,11 @@
-Language MySQL [![Build Status](https://travis-ci.org/OpenFn/language-mysql.svg?branch=master)](https://travis-ci.org/OpenFn/language-mysql)
-==============
+# Language MySQL [![Build Status](https://travis-ci.org/OpenFn/language-mysql.svg?branch=master)](https://travis-ci.org/OpenFn/language-mysql)
 
 Language Pack for building expressions and operations to run MySQL queries.
 
-Documentation
--------------
+## Documentation
 
 ## sample configuration
+
 ```json
 {
   "host": "some-host-url.compute-1.amazonaws.com",
@@ -17,31 +16,45 @@ Documentation
 }
 ```
 
-## `sqlString(query)`
-Execute an sql query.
+## query(options)
+
+Execute an sql query with the node mysql package.
+
+```js
+query({
+  sql: state => {
+    return `select * from ${state.data.table} where id = ?;`;
+  },
+  timeout: 4000,
+  values: ['007'],
+});
+```
+
+## DEPRECATED: `sqlString(query)`
+
+DEPRECATED: Execute an sql query.
 
 #### sample usage with string interpolation
+
 ```js
 sqlString(state => {
-    return (
-      `INSERT INTO untitled_table (name, the_geom) VALUES ('`
-        + state.data.version
-        + `', `
-        + dataValue("form.Choix_tache")(state) + `)`
-    )
+  return (
+    `INSERT INTO untitled_table (name, the_geom) VALUES ('` +
+    state.data.version +
+    `', ` +
+    dataValue('form.Choix_tache')(state) +
+    `)`
+  );
 });
 ```
 
 #### sample usage with `insert`
+
 ```js
-insert("some_table", fields(
-  field("name", dataValue("form.patient_name"))
-));
+insert('some_table', fields(field('name', dataValue('form.patient_name'))));
 ```
 
-
-Development
------------
+## Development
 
 Clone the repo, run `npm install`.
 

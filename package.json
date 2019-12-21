@@ -1,6 +1,6 @@
 {
   "name": "language-mysql",
-  "version": "0.3.2",
+  "version": "1.0.0",
   "description": "A MySQL Language Pack for OpenFn",
   "main": "lib/index.js",
   "scripts": {

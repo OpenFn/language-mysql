@@ -60,7 +60,7 @@ function cleanupState(state) {
 }
 
 /**
- * Execute an SQL statement
+ * Execute an SQL insert statement
  * @example
  * execute(
  *   insert(table, fields)
@@ -190,10 +190,49 @@ export function upsert(table, fields) {
 }
 
 /**
- * Execute an SQL statement
+ * Execute a SQL statement
  * @example
  * execute(
- *   sql(sqlQuery)
+ *   sql({string: 'select * from users;'})
+ * )(state)
+ * @constructor
+ * @param {object} sqlQuery - Payload data for the message
+ * @returns {Operation}
+ */
+export function query(options) {
+  return state => {
+    let { connection } = state;
+
+    const opts = expandReferences(options)(state);
+
+    console.log('Executing MySQL statement with options: ' + JSON.stringify(opts, 2, null));
+
+    return new Promise((resolve, reject) => {
+      // execute a query on our database
+      connection.query(opts, function(err, results, fields) {
+        if (err) {
+          reject(err);
+          // Disconnect if there's an error.
+          console.log("That's an error. Disconnecting from database.");
+          connection.end();
+        } else {
+          console.log('Success...');
+          resolve(JSON.parse(JSON.stringify(results)));
+        }
+      });
+    }).then(data => {
+      console.log(data);
+      const nextState = { ...state, response: { body: data } };
+      return nextState;
+    });
+  };
+}
+
+/**
+ * Execute a SQL statement
+ * @example
+ * execute(
+ *   sqlString(sqlQuery)
  * )(state)
  * @constructor
  * @param {object} sqlQuery - Payload data for the message
