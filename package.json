@@ -16,21 +16,21 @@
   "dependencies": {
     "json-sql": "^0.3.10",
     "language-common": "github:openfn/language-common",
-    "mysql": "^2.17.1",
-    "squel": "^5.13.0",
+    "mysql": "^2.13.0",
+    "squel": "^5.8.0",
     "string-escape": "^0.3.0"
   },
   "devDependencies": {
-    "@babel/cli": "^7.7.5",
     "assertion-error": "^1.0.1",
     "babel": "^6.0.15",
+    "babel-cli": "^6.1.2",
     "babel-core": "^6.1.2",
     "babel-preset-es2015": "^6.1.2",
     "babel-preset-stage-0": "^6.3.13",
     "chai": "^3.4.0",
     "deep-eql": "^0.1.3",
-    "mocha": "^6.2.2",
-    "nock": "^11.7.0",
+    "mocha": "^2.3.3",
+    "nock": "^8.0.0",
     "sinon": "^1.17.2"
   }
 }
