@@ -63,14 +63,16 @@ function cleanupState(state) {
 }
 
 /**
- * Execute an SQL insert statement
+ * Insert a record
  * @example
  * execute(
- *   insert(table, fields)
+ *   insert('table', fields(
+ *      field('name', dataValue('name'))
+ *   ))
  * )(state)
  * @constructor
- * @param {string} table - the table
- * @param {object} fields - a fields object
+ * @param {string} table - The target table
+ * @param {object} fields - A fields object
  * @returns {Operation}
  */
 export function insert(table, fields) {
@@ -93,7 +95,7 @@ export function insert(table, fields) {
     var inserts = sqlParams.values;
     sqlString = mysql.format(sql, inserts);
 
-    console.log('Executing MySQL query: ' + sqlString);
+    console.log(`Executing MySQL query: ${sqlString}`);
 
     return new Promise((resolve, reject) => {
       // execute a query on our database
@@ -104,7 +106,7 @@ export function insert(table, fields) {
         if (err) {
           reject(err);
           // Disconnect if there's an error.
-          console.log("That's an error. Disconnecting from database.");
+          console.log('There is an error. Disconnecting from database.');
           connection.end();
         } else {
           console.log('Success...');
@@ -121,13 +123,16 @@ export function insert(table, fields) {
 }
 
 /**
- * Execute an SQL INSERT ... ON DUPLICATE KEY UPDATE statement
+ * Insert or Update a record if matched
  * @example
  * execute(
- *   upsert(table, fields)
+ *   upsert('table', fields(
+ *      field('name', dataValue('name'))
+ *   ))
  * )(state)
  * @constructor
- * @param {object} sqlQuery - Payload data for the message
+ * @param {string} table - The target table
+ * @param {object} fields - A fields object
  * @returns {Operation}
  */
 export function upsert(table, fields) {
