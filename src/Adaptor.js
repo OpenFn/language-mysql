@@ -1,4 +1,7 @@
-import { execute as commonExecute, expandReferences } from 'language-common';
+import {
+  execute as commonExecute,
+  expandReferences,
+} from '@openfn/language-common';
 import { resolve as resolveUrl } from 'url';
 import mysql from 'mysql';
 import squel from 'squel';
@@ -97,7 +100,7 @@ export function insert(table, fields) {
 
       // TODO: figure out how to escape the string.
 
-      connection.query(sqlString, function(err, results, fields) {
+      connection.query(sqlString, function (err, results, fields) {
         if (err) {
           reject(err);
           // Disconnect if there's an error.
@@ -169,7 +172,7 @@ export function upsert(table, fields) {
 
       // TODO: figure out how to escape the string.
 
-      connection.query(upsertString, function(err, results, fields) {
+      connection.query(upsertString, function (err, results, fields) {
         if (err) {
           reject(err);
           // Disconnect if there's an error.
@@ -193,7 +196,7 @@ export function upsert(table, fields) {
  * Execute a SQL statement
  * @example
  * execute(
- *   sql({string: 'select * from users;'})
+ *   query({ sql: 'select * from users;' })
  * )(state)
  * @constructor
  * @param {object} sqlQuery - Payload data for the message
@@ -205,11 +208,13 @@ export function query(options) {
 
     const opts = expandReferences(options)(state);
 
-    console.log('Executing MySQL statement with options: ' + JSON.stringify(opts, 2, null));
+    console.log(
+      'Executing MySQL statement with options: ' + JSON.stringify(opts, 2, null)
+    );
 
     return new Promise((resolve, reject) => {
       // execute a query on our database
-      connection.query(opts, function(err, results, fields) {
+      connection.query(opts, function (err, results, fields) {
         if (err) {
           reject(err);
           // Disconnect if there's an error.
@@ -232,23 +237,23 @@ export function query(options) {
  * Execute a SQL statement
  * @example
  * execute(
- *   sqlString(sqlQuery)
+ *   sqlString(state => "select * from items;")
  * )(state)
  * @constructor
- * @param {object} sqlQuery - Payload data for the message
+ * @param {String} query - A query string (or function which takes state and returns a string)
  * @returns {Operation}
  */
-export function sqlString(fun) {
+export function sqlString(query) {
   return state => {
     let { connection } = state;
 
-    const body = fun(state);
+    const body = expandReferences(query)(state);
 
     console.log('Executing MySQL statement: ' + body);
 
     return new Promise((resolve, reject) => {
       // execute a query on our database
-      connection.query(body, function(err, results, fields) {
+      connection.query(body, function (err, results, fields) {
         if (err) {
           reject(err);
           // Disconnect if there's an error.
@@ -279,4 +284,5 @@ export {
   dataPath,
   dataValue,
   lastReferenceValue,
-} from 'language-common';
+  http,
+} from '@openfn/language-common';

@@ -1,6 +1,6 @@
 {
   "name": "language-mysql",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A MySQL Language Pack for OpenFn",
   "main": "lib/index.js",
   "scripts": {
@@ -14,8 +14,8 @@
     "lib/"
   ],
   "dependencies": {
+    "@openfn/language-common": "1.2.6",
     "json-sql": "^0.3.10",
-    "language-common": "github:openfn/language-common",
     "mysql": "^2.13.0",
     "squel": "^5.8.0",
     "string-escape": "^0.3.0"
