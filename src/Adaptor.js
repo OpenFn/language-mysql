@@ -204,7 +204,7 @@ export function upsert(table, fields) {
  *   query({ sql: 'select * from users;' })
  * )(state)
  * @constructor
- * @param {object} sqlQuery - Payload data for the message
+ * @param {object} options - Payload data for the message
  * @returns {Operation}
  */
 export function query(options) {
@@ -245,35 +245,12 @@ export function query(options) {
  *   sqlString(state => "select * from items;")
  * )(state)
  * @constructor
- * @param {String} query - A query string (or function which takes state and returns a string)
+ * @param {String} queryString - A query string (or function which takes state and returns a string)
  * @returns {Operation}
  */
-export function sqlString(query) {
+export function sqlString(queryString) {
   return state => {
-    let { connection } = state;
-
-    const body = expandReferences(query)(state);
-
-    console.log('Executing MySQL statement: ' + body);
-
-    return new Promise((resolve, reject) => {
-      // execute a query on our database
-      connection.query(body, function (err, results, fields) {
-        if (err) {
-          reject(err);
-          // Disconnect if there's an error.
-          console.log("That's an error. Disconnecting from database.");
-          connection.end();
-        } else {
-          console.log('Success...');
-          resolve(JSON.parse(JSON.stringify(results)));
-        }
-      });
-    }).then(data => {
-      console.log(data);
-      const nextState = { ...state, response: { body: data } };
-      return nextState;
-    });
+    return query({ sql: queryString })(state);
   };
 }
 
