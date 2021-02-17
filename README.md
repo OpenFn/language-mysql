@@ -2,7 +2,9 @@
 
 Language Pack for building expressions and operations to run MySQL queries.
 
-**See [`src/Adaptor.js`](https://github.com/OpenFn/language-mysql/blob/master/src/Adaptor.js) for the full list of available helper functions including `upsert(...)`.**
+**See
+[`src/Adaptor.js`](https://github.com/OpenFn/language-mysql/blob/master/src/Adaptor.js)
+for the full list of available helper functions including `upsert(...)`.**
 
 ## Documentation
 
@@ -18,8 +20,7 @@ Language Pack for building expressions and operations to run MySQL queries.
 }
 ```
 
-## query(options)
-
+## Execute a query
 Execute an sql query with the node mysql package.
 
 ```js
@@ -32,11 +33,8 @@ query({
 });
 ```
 
-## DEPRECATED: `sqlString(query)`
-
-DEPRECATED: Execute an sql query.
-
-#### sample usage with string interpolation
+## Execute a sql query
+This function takes either a `string` or a `function` that takes states and returns a string.
 
 ```js
 sqlString(state => {
@@ -50,10 +48,33 @@ sqlString(state => {
 });
 ```
 
-#### sample usage with `insert`
+## Insert a single record
+
+This function is used to insert a single record in a MySQL database.
 
 ```js
-insert('some_table', fields(field('name', dataValue('form.patient_name'))));
+insert(
+  'some_table',
+  fields(
+    field('firstname', dataValue('form.patient_firstname')),
+    field('lastname', dataValue('form.patient_lastname'))
+  )
+);
+```
+
+## Insert or update a single record
+
+This function is used to insert a single record in a MySQL database or update it
+if there is a match.
+
+```js
+upsert(
+  'some_table',
+  fields(
+    field('firstname', dataValue('form.patient_firstname')),
+    field('lastname', dataValue('form.patient_lastname'))
+  )
+);
 ```
 
 ## Development
@@ -63,3 +84,6 @@ Clone the repo, run `npm install`.
 Run tests using `npm run test` or `npm run test:watch`
 
 Build the project using `make`.
+
+To build the docs for this repo, run
+`./node_modules/.bin/jsdoc --readme ./README.md ./lib -d docs`.
