@@ -1,7 +1,8 @@
 {
-  "name": "language-mysql",
+  "name": "@openfn/language-mysql",
   "version": "1.1.0",
   "description": "A MySQL Language Pack for OpenFn",
+  "homepage": "https://docs.openfn.org",
   "main": "lib/index.js",
   "scripts": {
     "build": "make",
