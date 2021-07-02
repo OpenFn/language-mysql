@@ -4,6 +4,10 @@
   "description": "A MySQL Language Pack for OpenFn",
   "homepage": "https://docs.openfn.org",
   "main": "lib/index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OpenFn/language-mysql.git"
+  },
   "scripts": {
     "build": "node_modules/.bin/babel src -d lib && npm run ast",
     "test": "mocha --require @babel/register",
