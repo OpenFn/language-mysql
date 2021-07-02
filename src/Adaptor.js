@@ -198,6 +198,90 @@ export function upsert(table, fields) {
 }
 
 /**
+ * Insert or update multiple records using ON DUPLICATE KEY
+ * @public
+ * @example
+ * upsertMany(
+ *   'users', // the DB table
+ *   [
+ *     { name: 'one', email: 'one@openfn.org' },
+ *     { name: 'two', email: 'two@openfn.org' },
+ *   ]
+ * )
+ * @constructor
+ * @param {string} table - The target table
+ * @param {array} data - An array of objects or a function that returns an array
+ * @returns {Operation}
+ */
+export function upsertMany(table, data) {
+  return function (state) {
+    /*
+    Builds and exexutes a query with syntax similar to the following 
+    (see MySQL official documentation for ON DUPLICATE KEY):
+     INSERT INTO users (name, email)
+    SELECT * FROM (
+      SELECT 'one' AS name, 'one@openfn.org' AS email UNION
+      SELECT 'two' AS name, 'two@openfn.org' AS email 
+    ) AS a
+    ON DUPLICATE KEY UPDATE name = a.name, email = a.email;
+    */
+    return new Promise(function (resolve, reject) {
+      const rows = expandReferences(data)(state); 
+
+      if (!rows || rows.length === 0) {
+        console.log('No records provided; skipping upsert.');
+        resolve(state);
+      }
+
+      const columns = Object.keys(rows[0]);
+      const columnList = columns.join(', '); 
+      
+      // 1. construct the INSERT statement
+      const insertStmt = "INSERT INTO ".concat(table, " (").concat(columnList, ")"); 
+      
+      // 2. construct the subquery
+      const subqueryAlias = 'a';
+      const selectValues = rows.map(function (r) {
+        let selectColumns = columns.map(function (c) {
+          return "".concat(mysql.escape(r[c]), " as ").concat(c);
+        }).join(', ');
+        return "SELECT ".concat(selectColumns);
+      });
+      const subqueryStmt = selectValues.join(' UNION ');
+      const selectStmt = "SELECT * FROM (".concat(subqueryStmt, ") as ").concat(subqueryAlias); 
+      
+      // 3. construct the ON DUPLICATE KEY statement
+      const updateStmt = columns.map(function (c) {
+        return "".concat(c, " = ").concat(subqueryAlias, ".").concat(c);
+      }).join(', ');
+      const onduplicateStmt = "ON DUPLICATE KEY UPDATE ".concat(updateStmt); 
+      
+      // combine 1, 2 & 3
+      const upsertString = "".concat(insertStmt, " ").concat(selectStmt, " ").concat(onduplicateStmt);
+      console.log(upsertString)
+
+      let { connection } = state;
+      connection.query(upsertString, function (err, results, fields) {
+        if (err) {
+          reject(err); // Disconnect if there's an error.
+
+          console.log("That's an error. Disconnecting from database.");
+          connection.end();
+        } else {
+          console.log('Success...');
+          console.log(results);
+          console.log(fields);
+          resolve(results);
+        }
+      });
+    }).then(function (data) {
+      const nextState = { ...state, response: { body: data } };
+      return nextState;
+    });
+  };
+}
+
+/**
  * Execute a SQL statement
  * @example
  * execute(
