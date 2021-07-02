@@ -19,7 +19,7 @@
     "ast.json"
   ],
   "dependencies": {
-    "@openfn/language-common": "1.4.0",
+    "@openfn/language-common": "1.4.1",
     "json-sql": "^0.3.10",
     "mysql": "^2.13.0",
     "squel": "^5.8.0",
