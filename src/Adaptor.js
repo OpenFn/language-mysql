@@ -259,6 +259,7 @@ export {
   fields,
   sourceValue,
   alterState,
+  fn,
   arrayToString,
   each,
   combine,
