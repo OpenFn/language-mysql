@@ -215,16 +215,6 @@ export function upsert(table, fields) {
  */
 export function upsertMany(table, data) {
   return function (state) {
-    /*
-    Builds and exexutes a query with syntax similar to the following 
-    (see MySQL official documentation for ON DUPLICATE KEY):
-     INSERT INTO users (name, email)
-    SELECT * FROM (
-      SELECT 'one' AS name, 'one@openfn.org' AS email UNION
-      SELECT 'two' AS name, 'two@openfn.org' AS email 
-    ) AS a
-    ON DUPLICATE KEY UPDATE name = a.name, email = a.email;
-    */
     return new Promise(function (resolve, reject) {
       const rows = expandReferences(data)(state); 
 
@@ -233,33 +223,18 @@ export function upsertMany(table, data) {
         resolve(state);
       }
 
+      const squelMysql = squel.useFlavour('mysql');
       const columns = Object.keys(rows[0]);
-      const columnList = columns.join(', '); 
-      
-      // 1. construct the INSERT statement
-      const insertStmt = "INSERT INTO ".concat(table, " (").concat(columnList, ")"); 
-      
-      // 2. construct the subquery
-      const subqueryAlias = 'a';
-      const selectValues = rows.map(function (r) {
-        let selectColumns = columns.map(function (c) {
-          return "".concat(mysql.escape(r[c]), " as ").concat(c);
-        }).join(', ');
-        return "SELECT ".concat(selectColumns);
-      });
-      const subqueryStmt = selectValues.join(' UNION ');
-      const selectStmt = "SELECT * FROM (".concat(subqueryStmt, ") as ").concat(subqueryAlias); 
-      
-      // 3. construct the ON DUPLICATE KEY statement
-      const updateStmt = columns.map(function (c) {
-        return "".concat(c, " = ").concat(subqueryAlias, ".").concat(c);
-      }).join(', ');
-      const onduplicateStmt = "ON DUPLICATE KEY UPDATE ".concat(updateStmt); 
-      
-      // combine 1, 2 & 3
-      const upsertString = "".concat(insertStmt, " ").concat(selectStmt, " ").concat(onduplicateStmt);
-      console.log(upsertString)
 
+      let upsertSql = squelMysql.insert()
+        .into(table)
+        .setFieldsRows(rows);
+      columns.map(c => { 
+        upsertSql = upsertSql.onDupUpdate(`${c}=values(${c})`)
+      });
+
+      const upsertString = upsertSql.toString();
+      
       let { connection } = state;
       connection.query(upsertString, function (err, results, fields) {
         if (err) {
