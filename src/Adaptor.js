@@ -198,6 +198,65 @@ export function upsert(table, fields) {
 }
 
 /**
+ * Insert or update multiple records using ON DUPLICATE KEY
+ * @public
+ * @example
+ * upsertMany(
+ *   'users', // the DB table
+ *   [
+ *     { name: 'one', email: 'one@openfn.org' },
+ *     { name: 'two', email: 'two@openfn.org' },
+ *   ]
+ * )
+ * @constructor
+ * @param {string} table - The target table
+ * @param {array} data - An array of objects or a function that returns an array
+ * @returns {Operation}
+ */
+export function upsertMany(table, data) {
+  return function (state) {
+    return new Promise(function (resolve, reject) {
+      const rows = expandReferences(data)(state); 
+
+      if (!rows || rows.length === 0) {
+        console.log('No records provided; skipping upsert.');
+        resolve(state);
+      }
+
+      const squelMysql = squel.useFlavour('mysql');
+      const columns = Object.keys(rows[0]);
+
+      let upsertSql = squelMysql.insert()
+        .into(table)
+        .setFieldsRows(rows);
+      columns.map(c => { 
+        upsertSql = upsertSql.onDupUpdate(`${c}=values(${c})`)
+      });
+
+      const upsertString = upsertSql.toString();
+      
+      let { connection } = state;
+      connection.query(upsertString, function (err, results, fields) {
+        if (err) {
+          reject(err); // Disconnect if there's an error.
+
+          console.log("That's an error. Disconnecting from database.");
+          connection.end();
+        } else {
+          console.log('Success...');
+          console.log(results);
+          console.log(fields);
+          resolve(results);
+        }
+      });
+    }).then(function (data) {
+      const nextState = { ...state, response: { body: data } };
+      return nextState;
+    });
+  };
+}
+
+/**
  * Execute a SQL statement
  * @example
  * execute(
