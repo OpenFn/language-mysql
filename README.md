@@ -77,6 +77,31 @@ upsert(
 );
 ```
 
+## Upsert many records
+
+This function allows the upsert of a set of records inside a table all at once.
+
+```js
+upsertMany(
+  'users', // the DB table
+  [
+    { name: 'one', email: 'one@openfn.org' },
+    { name: 'two', email: 'two@openfn.org' }
+  ]
+);
+```
+
+or
+
+```js
+upsertMany('users', state =>
+  state.data.users.map(user => {
+    name: user['name'],
+    email: user['email']
+  })
+);
+```
+
 ## Development
 
 Clone the repo, run `npm install`.
